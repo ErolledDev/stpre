@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Stripe Checkout Sample</title>
+    <meta name="description" content="A demo of Stripe Payment Intents" />
+
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="css/normalize.css" />
+    <link rel="stylesheet" href="css/global.css" />
+    <script src="https://js.stripe.com/v3/"></script>
+    <script type="module">
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+      import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyA5cnteCKvVKQV6YMRNRRy3x1r-LdHxlZ4",
+        authDomain: "dotkol.firebaseapp.com",
+        projectId: "dotkol",
+        storageBucket: "dotkol.firebasestorage.app",
+        messagingSenderId: "352293281910",
+        appId: "1:352293281910:web:948fca4227dd98f9ffff57"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+
+      window.firebaseAuth = auth;
+      window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+      window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+      window.signOut = signOut;
+
+      onAuthStateChanged(auth, (user) => {
+        const authContainer = document.getElementById('auth-container');
+        const pricingContainer = document.getElementById('pricing-container');
+        const userInfo = document.getElementById('user-info');
+
+        if (user) {
+          console.log('User authenticated:', user.uid);
+          authContainer.style.display = 'none';
+          pricingContainer.style.display = 'block';
+          userInfo.style.display = 'block';
+          document.getElementById('user-email').textContent = user.email;
+
+          // Set userId in hidden fields
+          const basicUserIdField = document.getElementById('basicUserId');
+          const proUserIdField = document.getElementById('proUserId');
+
+          if (basicUserIdField) {
+            basicUserIdField.value = user.uid;
+            console.log('Set basicUserId:', user.uid);
+          }
+          if (proUserIdField) {
+            proUserIdField.value = user.uid;
+            console.log('Set proUserId:', user.uid);
+          }
+
+          window.currentUserId = user.uid;
+        } else {
+          console.log('User not authenticated');
+          authContainer.style.display = 'block';
+          pricingContainer.style.display = 'none';
+          userInfo.style.display = 'none';
+        }
+      });
+    </script>
+    <script src="./script.js" defer></script>
+  </head>
+
+  <body>
+    <div class="togethere-background"></div>
+    <div class="sr-root">
+      <div class="sr-main">
+        <header class="sr-header">
+          <div class="sr-header__logo"></div>
+        </header>
+
+        <div id="user-info" style="display: none; text-align: right; margin-bottom: 20px;">
+          <span id="user-email" style="margin-right: 10px;"></span>
+          <button onclick="handleSignOut()" style="padding: 8px 16px; cursor: pointer;">Sign Out</button>
+        </div>
+
+        <div id="auth-container" style="display: none;">
+          <h1>Sign in to choose a plan</h1>
+          <div style="max-width: 400px; margin: 0 auto;">
+            <div id="auth-tabs" style="display: flex; margin-bottom: 20px; border-bottom: 2px solid #e0e0e0;">
+              <button id="login-tab" onclick="showLoginForm()" style="flex: 1; padding: 12px; border: none; background: none; cursor: pointer; font-size: 16px; font-weight: bold; color: #6772e5; border-bottom: 3px solid #6772e5;">Login</button>
+              <button id="signup-tab" onclick="showSignupForm()" style="flex: 1; padding: 12px; border: none; background: none; cursor: pointer; font-size: 16px; color: #999;">Sign Up</button>
+            </div>
+
+            <form id="login-form" style="display: block;">
+              <input type="email" id="login-email" placeholder="Email" required style="width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
+              <input type="password" id="login-password" placeholder="Password" required style="width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
+              <button type="submit" style="width: 100%; padding: 12px; background: #6772e5; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold;">Sign In</button>
+              <div id="login-error" style="color: red; margin-top: 12px; display: none;"></div>
+            </form>
+
+            <form id="signup-form" style="display: none;">
+              <input type="email" id="signup-email" placeholder="Email" required style="width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
+              <input type="password" id="signup-password" placeholder="Password (min 6 characters)" required minlength="6" style="width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
+              <button type="submit" style="width: 100%; padding: 12px; background: #6772e5; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold;">Create Account</button>
+              <div id="signup-error" style="color: red; margin-top: 12px; display: none;"></div>
+            </form>
+          </div>
+        </div>
+
+        <div id="pricing-container" style="display: none;">
+          <h1>Choose a collaboration plan</h1>
+          <div class="price-table-container">
+            <section>
+              <form action="/api/create-checkout-session" method="POST" id="basic-form">
+                <input type="hidden" id="basicPrice" name="priceId">
+                <input type="hidden" id="basicUserId" name="userId">
+                <img
+                  src="/img/starter.png"
+                  width="120"
+                  height="120"
+                  />
+                <div class="name">Starter</div>
+                <div class="price">$12</div>
+                <div class="duration">per month</div>
+                <button id="basic-plan-btn">Select</button>
+              </form>
+            </section>
+            <section>
+              <form action="/api/create-checkout-session" method="POST" id="pro-form">
+                <input type="hidden" id="proPrice" name="priceId">
+                <input type="hidden" id="proUserId" name="userId">
+                <img
+                  src="/img/professional.png"
+                  width="120"
+                  height="120"
+                  />
+                <div class="name">Professional</div>
+                <div class="price">$18</div>
+                <div class="duration">per month</div>
+                <button id="pro-plan-btn">Select</button>
+              </form>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="error-message" class="error-message"></div>
+
+    <script>
+      function showLoginForm() {
+        document.getElementById('login-form').style.display = 'block';
+        document.getElementById('signup-form').style.display = 'none';
+        document.getElementById('login-tab').style.color = '#6772e5';
+        document.getElementById('login-tab').style.borderBottom = '3px solid #6772e5';
+        document.getElementById('signup-tab').style.color = '#999';
+        document.getElementById('signup-tab').style.borderBottom = 'none';
+      }
+
+      function showSignupForm() {
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('signup-form').style.display = 'block';
+        document.getElementById('login-tab').style.color = '#999';
+        document.getElementById('login-tab').style.borderBottom = 'none';
+        document.getElementById('signup-tab').style.color = '#6772e5';
+        document.getElementById('signup-tab').style.borderBottom = '3px solid #6772e5';
+      }
+
+      document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const errorDiv = document.getElementById('login-error');
+
+        try {
+          await window.signInWithEmailAndPassword(window.firebaseAuth, email, password);
+          errorDiv.style.display = 'none';
+        } catch (error) {
+          errorDiv.textContent = error.message;
+          errorDiv.style.display = 'block';
+        }
+      });
+
+      document.getElementById('signup-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('signup-email').value;
+        const password = document.getElementById('signup-password').value;
+        const errorDiv = document.getElementById('signup-error');
+
+        try {
+          await window.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
+          errorDiv.style.display = 'none';
+        } catch (error) {
+          errorDiv.textContent = error.message;
+          errorDiv.style.display = 'block';
+        }
+      });
+
+      async function handleSignOut() {
+        try {
+          await window.signOut(window.firebaseAuth);
+        } catch (error) {
+          console.error('Sign out error:', error);
+        }
+      }
+    </script>
+  </body>
+</html>

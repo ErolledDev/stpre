@@ -1,0 +1,26 @@
+name: Server Tests (Java)
+on:
+  push:
+    branches:
+      - main
+      - fix-ci
+    paths:
+      - 'server/java/**'
+      - '!**.md'
+  workflow_dispatch:
+
+jobs:
+  server_test:
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime:
+          - server_type: java
+            server_image: maven:latest
+          - server_type: java
+            server_image: maven:3.8-openjdk-8
+    uses: ./.github/workflows/server_test.yml
+    secrets: inherit
+    with:
+      server_type: ${{ matrix.runtime.server_type }}
+      server_image: ${{ matrix.runtime.server_image }}

@@ -1,0 +1,24 @@
+name: Server Tests (dotnet)
+on:
+  push:
+    branches:
+      - main
+      - fix-ci
+    paths:
+      - 'server/dotnet/**'
+      - '!**.md'
+  workflow_dispatch:
+
+jobs:
+  server_test:
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime:
+          - server_type: dotnet
+            server_image: mcr.microsoft.com/dotnet/sdk:8.0
+    uses: ./.github/workflows/server_test.yml
+    secrets: inherit
+    with:
+      server_type: ${{ matrix.runtime.server_type }}
+      server_image: ${{ matrix.runtime.server_image }}
