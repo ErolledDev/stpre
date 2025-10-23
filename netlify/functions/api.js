@@ -35,7 +35,7 @@ app.use(
   })
 );
 
-app.get("/api/config", (req, res) => {
+app.get("/config", (req, res) => {
   res.json({
     publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
     basicPrice: process.env.BASIC_PRICE_ID,
@@ -43,13 +43,13 @@ app.get("/api/config", (req, res) => {
   });
 });
 
-app.get("/api/checkout-session", async (req, res) => {
+app.get("/checkout-session", async (req, res) => {
   const { sessionId } = req.query;
   const session = await stripe.checkout.sessions.retrieve(sessionId);
   res.json(session);
 });
 
-app.post("/api/create-checkout-session", async (req, res) => {
+app.post("/create-checkout-session", async (req, res) => {
   const domainURL = process.env.DOMAIN || process.env.URL;
   const { priceId, userId } = req.body;
 
@@ -89,7 +89,7 @@ app.post("/api/create-checkout-session", async (req, res) => {
   }
 });
 
-app.post('/api/customer-portal', async (req, res) => {
+app.post('/customer-portal', async (req, res) => {
   const { sessionId } = req.body;
   const checkoutSession = await stripe.checkout.sessions.retrieve(sessionId);
 
@@ -103,7 +103,7 @@ app.post('/api/customer-portal', async (req, res) => {
   res.json({ url: portalSession.url });
 });
 
-app.post("/api/webhook", async (req, res) => {
+app.post("/webhook", async (req, res) => {
   let data;
   let eventType;
 
