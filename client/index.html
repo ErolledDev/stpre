@@ -199,6 +199,50 @@
           console.error('Sign out error:', error);
         }
       }
+
+      document.getElementById('basic-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const priceId = document.getElementById('basicPrice').value;
+        const userId = document.getElementById('basicUserId').value;
+
+        try {
+          const response = await fetch('/api/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ priceId, userId })
+          });
+          const data = await response.json();
+          if (data.url) {
+            window.location.href = data.url;
+          } else if (data.error) {
+            alert('Error: ' + data.error.message);
+          }
+        } catch (error) {
+          alert('Error: ' + error.message);
+        }
+      });
+
+      document.getElementById('pro-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const priceId = document.getElementById('proPrice').value;
+        const userId = document.getElementById('proUserId').value;
+
+        try {
+          const response = await fetch('/api/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ priceId, userId })
+          });
+          const data = await response.json();
+          if (data.url) {
+            window.location.href = data.url;
+          } else if (data.error) {
+            alert('Error: ' + data.error.message);
+          }
+        } catch (error) {
+          alert('Error: ' + error.message);
+        }
+      });
     </script>
   </body>
 </html>

@@ -28,12 +28,32 @@
             </pre>
             <button onclick="window.location.href = '/';">Restart demo</button>
 
-            <form action="/api/customer-portal" method="POST">
+            <form id="portal-form">
               <!-- In practice, use the Stripe customer ID on the server to redirect to the customer portal. This is for demo: -->
               <input type="hidden" name="sessionId" id="sessionId" />
 
               <button>Manage Billing</button>
             </form>
+            <script>
+              document.getElementById('portal-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const sessionId = document.getElementById('sessionId').value;
+
+                try {
+                  const response = await fetch('/api/customer-portal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId })
+                  });
+                  const data = await response.json();
+                  if (data.url) {
+                    window.location.href = data.url;
+                  }
+                } catch (error) {
+                  alert('Error: ' + error.message);
+                }
+              });
+            </script>
           </div>
         </div>
         <div class="sr-content">
